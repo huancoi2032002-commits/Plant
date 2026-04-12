@@ -1,0 +1,45 @@
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+
+cloudinary.config({
+  cloud_name: "duxzzujph",
+  api_key: "879465776654446",
+  api_secret: "YOUR_SECRET",
+});
+
+async function getAllImages() {
+  let all = [];
+  let next_cursor = undefined;
+
+  do {
+    const res = await cloudinary.api.resources({
+      type: "upload",
+      prefix: "plants/",   // folder bạn upload
+      max_results: 100,
+      next_cursor
+    });
+
+    all.push(...res.resources);
+    next_cursor = res.next_cursor;
+
+  } while (next_cursor);
+
+  return all.map(r => r.secure_url);
+}
+
+async function main() {
+  const urls = await getAllImages();
+
+  console.log("Tổng ảnh:", urls.length);
+
+  urls.forEach(u => console.log(u));
+
+  fs.writeFileSync(
+    "cloudinary_links.json",
+    JSON.stringify(urls, null, 2)
+  );
+
+  console.log("✅ Đã lưu cloudinary_links.json");
+}
+
+main();

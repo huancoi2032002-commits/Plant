@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import ProductItem from "../../../../components/ProductItem/ProductItem";
-import { productsData } from "../../../../store/Product/Product";
 
 interface ProductSectionProps {
     title: string;

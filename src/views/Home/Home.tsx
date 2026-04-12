@@ -4,7 +4,6 @@ import PostHome from "./Components/PostHome/PostHome";
 import WhyUs from "./Components/WhyUs/WhyUs";
 import Connect from "./Components/Connect/Connect";
 import ProductSection from "./Components/ProductSection/ProductSection";
-import { productsData } from "../../store/Product/Product";
 import Banner1 from "../../assets/Banner_1.jpg";
 
 interface HomeProps {

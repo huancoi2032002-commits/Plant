@@ -35,7 +35,6 @@ const Pagination: React.FC<PaginationProps> = ({
     };
 
     const handlePageChange = (page: number) => {
-        // Giữ nguyên các params khác
         const newParams = new URLSearchParams(searchParams);
         newParams.set("page", page.toString());
         setSearchParams(newParams);
@@ -49,7 +48,7 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+                className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50 cursor-pointer"
             >
                 Prev
             </button>
@@ -58,7 +57,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 rounded ${page === currentPage ? "bg-green-500 text-white" : "hover:bg-gray-200"
+                    className={`px-3 py-1 rounded cursor-pointer ${page === currentPage ? "bg-green-500 text-white" : "hover:bg-gray-200"
                         }`}
                 >
                     {page}

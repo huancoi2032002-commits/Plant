@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import LayoutMain from "../../layouts/LayoutMain/LayoutMain";
-import { productsData } from "../../store/Product/Product";
-import type { ProductProps } from "../../store/Product/Product";
 import ProductItem from "../../components/ProductItem/ProductItem";
 import Filter from "./Components/Filter/Filter";
 import Pagination from "../../components/Pagination/Pagination";

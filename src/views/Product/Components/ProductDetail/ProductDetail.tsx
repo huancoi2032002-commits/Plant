@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { productsData } from "../../../../store/Product/Product";
-import type { ProductProps } from "../../../../store/Product/Product";
 import LayoutMain from "../../../../layouts/LayoutMain/LayoutMain";
 import { BoxIcon, CalendarIcon, LeafIcon, TreeIcon } from "../../../../assets";
 import ProductItem from "../../../../components/ProductItem/ProductItem";
 import PlantDescription from "../../../../components/PlantDescription/PlantDescription";
-import { productDescriptions } from "../../../../store/Data/Descriptions";
 
 
 const ProductDetail = () => {
@@ -156,6 +153,7 @@ const ProductDetail = () => {
                             name={productDescription.name}
                             intro={productDescription.intro}
                             sections={productDescription.sections}
+                            images={[]}
                         />
                     )}
 
