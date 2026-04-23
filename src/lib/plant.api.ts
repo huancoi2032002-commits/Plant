@@ -14,7 +14,7 @@ type SectionData = {
     order?: number;
 };
 
-type PlantData = {
+export type PlantData = {
     plant_name: string;
     plant_secondname?: string;
     price?: string;
@@ -28,6 +28,7 @@ type PlantData = {
     images?: { url: string; description?: string }[];
     applications?: string[];
     sections?: SectionData[];
+    created_at?: string;
 };
 
 export const createPlant = async (data: PlantData) => {
@@ -56,18 +57,23 @@ export const createPlant = async (data: PlantData) => {
 
         // ================= Images =================
         if (data.images?.length) {
-            for (const [idx, img] of data.images.entries()) {
-                await supabase.from("images").insert([
-                    { plant_id, url: [img.url], sort_order: idx }, // array vì DB là TEXT[]
-                ]);
-            }
+            const imageRows = data.images.map((img, idx) => ({
+                plant_id,
+                url: img.url,
+                sort_order: idx,
+            }));
+
+            await supabase.from("images").insert(imageRows);
         }
 
         // ================= Applications =================
         if (data.applications?.length) {
-            await supabase.from("applications").insert([
-                { plant_id, description: data.applications },
-            ]);
+            const appRows = data.applications.map((desc: string) => ({
+                plant_id,
+                description: desc,
+            }));
+
+            await supabase.from("applications").insert(appRows);
         }
 
         // ================= Sections =================
@@ -155,7 +161,7 @@ export const createPlant = async (data: PlantData) => {
     }
 };
 
-export const getPlantFull = async (plantId: string) => {
+{/*export const getPlantFull = async (plantId: string) => {
     // 1. plant
     const { data: plant, error: plantError } = await supabase
         .from("plants")
@@ -256,5 +262,87 @@ export const getPlantFull = async (plantId: string) => {
     return {
         ...plant,
         sections: fullSections
+    };
+};*/}
+
+export const getPlantFull = async (plantId: string) => {
+    const { data, error } = await supabase
+        .from("plants")
+        .select(`
+            *,
+            images ( url, sort_order ),
+            applications ( description ),
+            sections (
+                *,
+                contents (
+                    *,
+                    items (*)
+                ),
+                difficulty (*)
+            )
+        `)
+        .eq("plant_id", plantId)
+        .order("order", { foreignTable: "sections", ascending: true })
+        .order("sort_order", { foreignTable: "sections.contents", ascending: true })
+        .order("sort_order", { foreignTable: "sections.contents.items", ascending: true })
+        .order("sort_order", { foreignTable: "images", ascending: true })
+        .single();
+
+    if (error) throw error;
+
+    return transformPlant(data);
+};
+
+const transformPlant = (plant: any) => {
+    return {
+        ...plant,
+        name: plant.plant_name,
+        secondName: plant.plant_secondname,
+        images: plant.images?.map((img: any) => img.url) || [],
+        applications: plant.applications || [],
+
+        sections: (plant.sections || []).map((section: any) => {
+
+            // TABLE
+            if (section.type === "table") {
+                return {
+                    ...section,
+                    content: (section.contents || []).map((row: any) => ({
+                        title: row.title,
+                        label: row.label,
+                        value: row.value
+                    }))
+                };
+            }
+
+            // LIST
+            if (section.type === "list") {
+                return {
+                    ...section,
+                    content: (section.contents || []).map((block: any) => ({
+                        items: (block.items || []).map((i: any) => i.text)
+                    }))
+                };
+            }
+
+            // DIFFICULTY
+            if (section.type === "difficulty") {
+                const d = section.difficulty?.[0];
+
+                return {
+                    ...section,
+                    content: d
+                        ? {
+                            level: d.level,
+                            scale: d.scale,
+                            description: d.description,
+                            labels: d.labels
+                        }
+                        : null
+                };
+            }
+
+            return section;
+        })
     };
 };

@@ -21,7 +21,16 @@ function App() {
     <Routes>
       <Route path="/" element={<PageLoader><Suspense fallback={<Loading />}><Home /></Suspense></PageLoader>} />
       <Route path="/products" element={<PageLoader><Suspense fallback={<Loading />}><Product /></Suspense></PageLoader>} />
-      <Route path="/products/:idProduct" element={<PageLoader><Suspense fallback={<Loading />}><ProductDetail /></Suspense></PageLoader>} />
+      <Route
+        path="/products/:idProduct"
+        element={
+          <PageLoader>
+            <Suspense fallback={<Loading />}>
+              <ProductDetail />
+            </Suspense>
+          </PageLoader>
+        }
+      />
       <Route path="/blog" element={<PageLoader><Suspense fallback={<Loading />}><Blog /></Suspense></PageLoader>} />
       <Route path="/wishlist" element={<PageLoader><Suspense fallback={<Loading />}><Wishlist /></Suspense></PageLoader>} />
 
@@ -47,7 +56,7 @@ function App() {
         path="/admin/plants/allplants"
         element={
           <AdminRoute>
-            <AllPlants plantId="6"/>
+            <AllPlants plantId="6" />
           </AdminRoute>
         }
       />
@@ -55,7 +64,7 @@ function App() {
         path="/admin/plants/allimages"
         element={
           <AdminRoute>
-            <ImagesPlants/>
+            <ImagesPlants />
           </AdminRoute>
         }
       />
@@ -63,7 +72,7 @@ function App() {
         path="/admin/plants/addimages"
         element={
           <AdminRoute>
-            <AddImages/>
+            <AddImages />
           </AdminRoute>
         }
       />

@@ -1,3 +1,4 @@
+{/*** 
 import React from "react";
 import type { Blog } from "../../store/Blog/Blog";
 
@@ -128,4 +129,4 @@ const BlogRenderer: React.FC<{ data: Blog }> = ({ data }) => {
     }
 };
 
-export default BlogRenderer;
+export default BlogRenderer;*/}

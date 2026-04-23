@@ -1,16 +1,39 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import LayoutMain from "../../layouts/LayoutMain/LayoutMain";
 import PostHome from "./Components/PostHome/PostHome";
 import WhyUs from "./Components/WhyUs/WhyUs";
 import Connect from "./Components/Connect/Connect";
 import ProductSection from "./Components/ProductSection/ProductSection";
 import Banner1 from "../../assets/Banner_1.jpg";
+import { supabase } from "../../lib/supabase";
 
 interface HomeProps {
 
 }
 
 const Home: React.FC<HomeProps> = () => {
+
+    const [plants, setPlants] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchPlants = async () => {
+            const { data, error } = await supabase
+                .from("plants")
+                .select(`
+                *,
+                images ( url ),
+                applications ( description )
+            `)
+                .order("created_at", { ascending: false }); // 👈 dùng field này
+
+            if (!error && data) {
+                setPlants(data);
+            }
+        };
+
+        fetchPlants();
+    }, []);
+
     return (
         <LayoutMain>
             <div className="pb-10 w-full">
@@ -38,7 +61,7 @@ const Home: React.FC<HomeProps> = () => {
                 <div className="w-full max-w-[1200px] h-full flex items-center mx-auto justify-center ">
                     <ProductSection
                         title="Sản phẩm mới"
-                        products={[...productsData]
+                        products={[...plants]
                             .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
                             .slice(0, 8)
                         }

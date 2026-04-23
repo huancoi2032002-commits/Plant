@@ -4,19 +4,56 @@ import LayoutMain from "../../layouts/LayoutMain/LayoutMain";
 import ProductItem from "../../components/ProductItem/ProductItem";
 import Filter from "./Components/Filter/Filter";
 import Pagination from "../../components/Pagination/Pagination";
+import { supabase } from "../../lib/supabase";
+import type { PlantData } from "../../lib/plant.api";
 import "./Product.scss";
 
+type Plant = PlantData & { plant_id: number };
+
 const Product = () => {
+    const [plants, setPlants] = useState<Plant[]>([]);
     const [inStockOnly, setInStockOnly] = useState(false);
     const [sortType, setSortType] = useState<string | null>(null);
     const [itemsPerPage, setItemsPerPage] = useState(8);
     const [filterType, setFilterType] = useState<"new" | "rare" | null>(null);
-    const [searchParams, setSearchParams] = useSearchParams();
 
+    const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = Number(searchParams.get("page") || 1);
     const listRef = useRef<HTMLDivElement>(null);
 
-    // Responsive items per page
+    // ✅ fetch data từ Supabase
+    useEffect(() => {
+        const fetchPlants = async () => {
+            const { data, error } = await supabase
+                .from("plants")
+                .select(`
+                *,
+                images ( url ),
+                applications ( description )
+            `)
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                const transformed = data.map((p: any) => ({
+                    ...p,
+
+                    // ✅ convert images từ object -> string[]
+                    images: (p.images || []).map((img: any) =>
+                        img.url?.replace(/[{}"]/g, "")
+                    ),
+
+                    // ✅ đảm bảo description luôn là array
+                    description: p.description || [],
+                }));
+
+                setPlants(transformed); // ✅ FIX ở đây
+            }
+        };
+
+        fetchPlants();
+    }, []);
+
+    // responsive
     useEffect(() => {
         const handleResize = () => {
             setItemsPerPage(window.innerWidth < 768 ? 4 : 8);
@@ -26,7 +63,7 @@ const Product = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // Đọc query param để xác định loại filter
+    // query param filter
     useEffect(() => {
         const typeParam = searchParams.get("type");
         if (typeParam === "new" || typeParam === "rare") {
@@ -36,45 +73,58 @@ const Product = () => {
         }
     }, [searchParams]);
 
-    // 🔍 Lọc sản phẩm
+    // 🔍 filter
     const filteredProducts = useMemo(() => {
-        return productsData.filter((p: ProductProps) => {
-            const matchStock = !inStockOnly || p.inStock;
+        return plants.filter((p) => {
+            const matchStock = !inStockOnly || p.instock;
 
             let matchType = true;
+
             if (filterType === "new") {
-                matchType = p.createdAt
-                    ? new Date(p.createdAt) >=
+                matchType = p.created_at
+                    ? new Date(p.created_at) >=
                     new Date(new Date().setMonth(new Date().getMonth() - 1))
                     : false;
-            } else if (filterType === "rare") {
-                matchType = p.tags?.includes("rare") ?? false;
+            }
+
+            // nếu chưa có tags thì bỏ rare
+            if (filterType === "rare") {
+                matchType = false;
             }
 
             return matchStock && matchType;
         });
-    }, [inStockOnly, filterType]);
+    }, [plants, inStockOnly, filterType]);
 
-    // 🔢 Sắp xếp sản phẩm
+    // 🔢 sort
     const sortedProducts = useMemo(() => {
         const copy = [...filteredProducts];
+
         switch (sortType) {
             case "name-a-z":
-                return copy.sort((a, b) => a.name.localeCompare(b.name));
+                return copy.sort((a, b) =>
+                    a.plant_name.localeCompare(b.plant_name)
+                );
+
             case "name-z-a":
-                return copy.sort((a, b) => b.name.localeCompare(a.name));
+                return copy.sort((a, b) =>
+                    b.plant_name.localeCompare(a.plant_name)
+                );
+
             case "date-old-new":
                 return copy.sort(
                     (a, b) =>
-                        new Date(a.createdAt ?? 0).getTime() -
-                        new Date(b.createdAt ?? 0).getTime()
+                        new Date(a.created_at ?? 0).getTime() -
+                        new Date(b.created_at ?? 0).getTime()
                 );
+
             case "date-new-old":
                 return copy.sort(
                     (a, b) =>
-                        new Date(b.createdAt ?? 0).getTime() -
-                        new Date(a.createdAt ?? 0).getTime()
+                        new Date(b.created_at ?? 0).getTime() -
+                        new Date(a.created_at ?? 0).getTime()
                 );
+
             default:
                 return copy;
         }
@@ -87,7 +137,6 @@ const Product = () => {
         currentPage * itemsPerPage
     );
 
-    // ✅ Giữ lại sort & các params khác khi đổi trang
     const handlePageChange = (page: number) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set("page", page.toString());
@@ -98,14 +147,17 @@ const Product = () => {
     return (
         <LayoutMain>
             <div className="w-full max-w-[1200px] mx-auto md:py-8">
-                <Filter onSortChange={setSortType} onInStockChange={setInStockOnly} />
+                <Filter
+                    onSortChange={setSortType}
+                    onInStockChange={setInStockOnly}
+                />
 
                 <div
                     ref={listRef}
                     className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8"
                 >
-                    {currentProducts.map((product) => (
-                        <ProductItem key={product.id} {...product} />
+                    {currentProducts.map((plant) => (
+                        <ProductItem key={plant.plant_id} plant={plant} />
                     ))}
                 </div>
 

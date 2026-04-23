@@ -27,7 +27,7 @@ export default function AddPlantFullForm() {
     const [rating, setRating] = useState(0);
 
     // ===== Images =====
-    const [images, setImages] = useState<{ url: string; description?: string }[]>([]);
+    const [images, setImages] = useState<{ url: string}[]>([]);
 
     // ===== Applications =====
     const [applications, setApplications] = useState<string[]>([]);
@@ -61,7 +61,7 @@ export default function AddPlantFullForm() {
         setNextOrder(nextOrder + 1);
     };
 
-    const addImage = () => setImages([...images, { url: "", description: "" }]);
+    const addImage = () => setImages([...images, { url: ""}]);
     const addApplication = () => setApplications([...applications, ""]);
 
     // ===== Submit =====
